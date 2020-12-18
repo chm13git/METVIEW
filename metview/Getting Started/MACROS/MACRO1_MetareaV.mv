@@ -1,0 +1,152 @@
+# Metview Macro
+
+#  **************************** LICENSE START ***********************************
+# 
+#  Copyright 2018 ECMWF. This software is distributed under the terms
+#  of the Apache License version 2.0. In applying this license, ECMWF does not
+#  waive the privileges and immunities granted to it by virtue of its status as
+#  an Intergovernmental Organization or submit itself to any jurisdiction.
+# 
+#  ***************************** LICENSE END ************************************
+
+# ---------------------------------------------------------------
+# Description: Plot METAREA_V
+# ---------------------------------------------------------------
+
+#include draw_rectangle.mv
+# Coastlines definition
+mycoast = mcoast(
+    map_boundaries                               : "on",
+    map_administrative_boundaries                : "on",
+    map_administrative_boundaries_countries_list : "bra"
+    )
+
+# Geographical area definition
+southamerica = geoview(
+#    map_projection      : "mercator",
+    map_projection      : "cylindrical",
+    map_area_definition : "corners",
+    area                : [-70,-90,20,0],
+    coastlines          : mycoast
+    )
+
+
+# create a geoline broken into 1-degree segments
+line_increment_in_degrees = 1
+
+
+#lat = [-33.44, -36, -31, -28.36]
+#lon = [-53.22, -48, -43, -48.49]
+#incrm = 1
+
+# define the plotting attributes for the line
+line_visdef = mgraph(
+    graph_line_colour    : "black",
+    graph_line_thickness : 2
+    )
+
+areaA = draw_area_A()
+areaB = draw_area_B()
+areaC = draw_area_C()
+areaD = draw_area_D()
+areaE = draw_area_E()
+areaF = draw_area_F()
+areaG = draw_area_G()
+areaH = draw_area_H()
+areaN = draw_area_N()
+areaS = draw_area_S()
+
+
+# define the output plot file
+#setoutput(pdf_output(output_name : 'geoline_on_map'))
+
+
+# plot the line on the map
+plot(southamerica, areaA, areaB, areaC, areaD, areaE, areaF, areaG, areaH, areaN, areaS, line_visdef) #, geoline1, line_visdef, geoline2, geoline3, geoline4)
+
+#----------------------------------------
+
+function draw_area_A()
+   lat = [-33.73, -36, -31, -28.6]
+   lon = [-53.37, -48, -43, -48.82]
+   incrm = 1
+   return draw_polygon(lat,lon,incrm)
+end draw_area_A
+
+function draw_area_B()
+   lat = [-28.6, -31, -26, -23.02]
+   lon = [-48.82, -43, -38, -42]
+   incrm = 1
+   return draw_polygon(lat,lon,incrm)
+end draw_area_B
+
+function draw_area_C()
+   lat = [-28.6, -23.02]
+   lon = [-48.82, -42]
+   incrm = 1
+   return draw_polygon(lat,lon,incrm)
+end draw_area_C
+
+function draw_area_D()
+   lat = [-23.02, -26, -21, -17.77]
+   lon = [-42, -38, -33, -39.02]
+   incrm = 1
+   return draw_polygon(lat,lon,incrm)
+end draw_area_D
+
+function draw_area_E()
+   lat = [-17.77, -21, -15, -13.02]
+   lon = [-39.02, -33, -33, -38.53]
+   incrm = 1
+   return draw_polygon(lat,lon,incrm)
+end draw_area_E
+
+function draw_area_F()
+   lat = [-13.02, -15, -10, -3, -5.75]
+   lon = [-38.53, -33, -29, -29, -35.2]
+   incrm = 1
+   return draw_polygon(lat,lon,incrm)
+end draw_area_F
+
+function draw_area_G()
+   lat = [-5.75, -3, 2, -2.48]
+   lon = [-35.02, -29, -38, -44.3]
+   incrm = 1
+   return draw_polygon(lat,lon,incrm)
+end draw_area_G
+
+function draw_area_H()
+   lat = [-2.48, 2, 7, 4.43]
+   lon = [-44.3, -38, -48, -51.55]
+   incrm = 1
+   return draw_polygon(lat,lon,incrm)
+end draw_area_H
+
+function draw_area_N()
+   lat = [-15, 7, 7, 2, -3, -10]
+   lon = [-20, -20, -48, -38, -29, -29]
+   incrm = 1
+   return draw_polygon(lat,lon,incrm)
+end draw_area_N
+
+function draw_area_S()
+   lat = [-15, -15, -36, -36, -31, -26, -21]
+   lon = [-33, -20, -20, -48, -43, -38, -33]
+   incrm = 1
+   return draw_polygon(lat,lon,incrm)
+end draw_area_S
+
+#--------------------------------------
+
+function draw_polygon(lat, lon, incrm)
+print(count(lat))
+
+   # Coordinates of line end-points  given as lat1,lon1,lat2,lon2
+   geol = []
+   for i = 1 to count(lat)-1 do
+      geol = geol & [mvl_geoline(lat[i], lon[i], lat[i+1], lon[i+1], incrm)]
+   end for
+
+   return geol
+
+end draw_polygon
