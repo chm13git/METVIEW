@@ -1,0 +1,271 @@
+#   fine-tune the macro manually!
+
+# Device description
+pdf = pdf_output(
+   output_name : "RES2_ppt3h_pressao"
+   )
+
+# Checks running mode
+mode = runmode()
+if mode = 'batch' or mode = 'execute' then
+   setoutput(pdf)
+end if
+
+# Read input data
+pcon = read("/home/operador/metview/Getting Started/MACROS/data_testes/icon13km_RAIN_CON_00.grib2")
+pgsp = read("/home/operador/metview/Getting Started/MACROS/data_testes/icon13km_RAIN_GSP_00.grib2")
+pmsl = read("/home/operador/metview/Getting Started/MACROS/data_testes/icon13km_PMSL_00.grib2") / 100
+
+# Ppt. Acum. (1h)
+#total_prec_h = nil
+#for i = 2 to count(pcon) do
+#   total_prec_h = total_prec_h & ((pcon[i] - pcon[i-1]) + (pgsp[i] - pgsp[i-1]))
+#end for
+
+# Ppt. Acum. (3h)
+total_prec_h = nil
+for i = 4 to count(pcon) by 3 do
+total_prec_h = total_prec_h & ((pcon[i] - pcon[i-3]) + (pgsp[i] - pgsp[i-3]))
+end for
+
+# Ppt. contouring
+ctotal_prec = mcont(
+    legend                       : "on",
+    contour                      : "off",
+    contour_level_selection_type : "level_list",
+    contour_level_list           : [1.5,2,2.5,3,3.5,4,6,8,10, 15, 20, 25],
+    #contour_level_list           : [1,3,5,10,15,20,25,30,40, 50, 60, 80, 100],
+    contour_label                : "off",
+    contour_shade                : "on",
+    contour_shade_colour_method  : "palette",
+    contour_shade_method         : "area_fill",
+    #contour_shade_palette_name   : "eccharts_blue_purple_7"
+    contour_shade_palette_name   : "eccharts_blue_11"
+    #contour_shade_palette_name   : "eccharts_black_red_21"
+    )
+
+# PMSL contouring
+c_pmsl = mcont(
+    contour_line_thickness       : 2,
+    contour_line_colour          : "black",
+    contour_highlight            : "off",
+    contour_label                : "off",
+    contour_level_selection_type : "interval",
+    contour_interval             : 2, #quantidade de isolinahs
+#    contour_label_colour         : "charcoal",
+#    contour_label_frequency      : 4,
+    contour_label_blanking       : "off",
+    contour_hilo                 : "on",
+    contour_hilo_type            : "both",
+    contour_hilo_window_size     : 60,
+    contour_hi_colour            : "black",
+    contour_lo_colour            : "black"
+    )
+
+# Call function to build layout (defined at end of macro)
+dw = build_layout()
+
+# Areas definition
+areas = mvl_study_areas()
+areas_vd = mgraph(
+    graph_line_colour    : "black",
+    #graph_line_colour    : "white",
+    graph_line_thickness : 2
+    )
+    
+# set-up the title
+name1  = "Precipitacao (mm/h)" #grib_get_string(pmsl[1], 'name')
+name2  = "Pressao (hPa)" #grib_get_string(prec[1], 'name') 
+units1 = grib_get_string(pcon[1], 'units')
+units2 = grib_get_string(pmsl[1], 'units')
+vdate1 = "<grib_info key='validityDate' where='shortName=RAIN_GSP'/>"
+vdate2 = "<grib_info key='validityDate' where='shortName=prmsl'/>"
+adate1 = grib_get_string(pcon[1], 'dataDate')
+adate2 = grib_get_string(pmsl[1], 'dataDate')
+level1 = grib_get_double(pcon[1], 'level')
+level2 = grib_get_double(pmsl[1], 'level')
+atime1 = number(grib_get_string(pcon[1], 'dataTime')) 
+atime2 = number(grib_get_string(pmsl[1], 'dataTime'))
+vtime1 = "<grib_info key='endStep' where='shortName=RAIN_GSP'/>"
+vtime2 = "<grib_info key='endStep' where='shortName=prmsl'/>"
+
+#title_text1 = 'Modelo ICON 13Km Pres. Sup./ Prec. Acum. (1h)'
+title_text1 = 'Modelo ICON 13Km Pres. Sup./ Prec. Acum. (3h)'
+title_text2 = 'Ref:' & atime2 & 'Z' & adate2 & ' + PROG.' & vtime2 & 'min'
+#title_text1 = name1 & ' ' & adate1 & ' ' & atime1 & 'UTC +' & vtime1 & 'min'
+#title_text2 = name2 & ' ' & 'superficie ' & adate2 & ' ' & atime2 & 'UTC +' & vtime2 & 'min'
+
+title = mtext(
+   text_line_count : 2,
+   text_font_size : 0.5,
+   text_line_1: title_text1,
+   text_line_2: title_text2
+   )# Importing : /Getting Started/Brunna_testes/Legend
+
+#legend = mlegend(
+#    legend_title           : "on",
+#    legend_title_font_size : 2
+#    )
+
+# Plot command
+# PMSL a parti do campo 2 (ppt. acum. 1h)
+#plot ( dw, areas, areas_vd, total_prec_h, ctotal_prec, pmsl[2, count(pmsl)], c_pmsl, title )
+# PMSL a parti do campo 4 (ppt. acum. 3h)
+plot ( dw, areas, areas_vd, total_prec_h, ctotal_prec, pmsl[4, count(pmsl),3], c_pmsl, title )
+
+# End of main program
+
+#------------------------------
+# Function to build the layout
+function build_layout()
+
+   #PageDescription
+   cgrey = mcoast(
+      MAP_COASTLINE_LAND_SHADE        : "ON",
+      #MAP_COASTLINE_LAND_SHADE_COLOUR : "GREY/OLIVE",
+      MAP_COASTLINE_LAND_SHADE_COLOUR : "RGB(0.5333,0.5333,0.5333)",
+      MAP_COASTLINE_SEA_SHADE         : "ON",
+      #MAP_COASTLINE_SEA_SHADE_COLOUR  : "GREY/NAVY",
+      MAP_COASTLINE_SEA_SHADE_COLOUR  : "RGB(0.7765,0.8177,0.8941)",
+      MAP_BOUNDARIES                  : "ON",
+      MAP_BOUNDARIES_COLOUR           : "BLACK",
+      #MAP_BOUNDARIES_COLOUR           : "RGB(0.4449,0.4414,0.4414)",
+      MAP_ADMINISTRATIVE_BOUNDARIES   : "ON",
+      MAP_ADMINISTRATIVE_BOUNDARIES_STYLE: "SOLID",
+      MAP_ADMINISTRATIVE_BOUNDARIES_COUNTRIES_LIST: "BRA",
+      MAP_GRID_LINE_STYLE             : "DASH",
+      MAP_GRID_COLOUR                 : "WHITE",
+      MAP_LABEL_HEIGHT                : 0.35 #0.20
+      )
+   
+   sa = geoview(
+      map_area_definition : "CORNERS",
+      area                : [ -50,-75,15,-15 ],
+      coasglines          : cgrey
+      )
+   
+   page1 = plot_page(
+      TOP       : 0,
+      BOTTOM    : 100,
+      LEFT      : 0,
+      RIGHT     : 100,
+      VIEW      : sa
+   )
+   
+   # SuperPage description
+   
+   dw = plot_superpage(
+      LAYOUT_SIZE        : "CUSTOM", #A4
+      LAYOUT_ORIENTATION : "LANDSCAPE",#"PORTRAIT",
+      CUSTOM_WIDTH       : 17.0,
+      CUSTOM_HEIGHT      : 20.0,
+      PAGES              : [ page1 ]
+   )
+
+   return dw
+
+end build_layout
+
+#------------------------------
+function draw_polygon(lat, lon, incrm)
+print(count(lat))
+
+   # Coordinates of line end-points  given as lat1,lon1,lat2,lon2
+   geol = []
+   for i = 1 to count(lat)-1 do
+      geol = geol & [mvl_geoline(lat[i], lon[i], lat[i+1], lon[i+1], incrm)]
+   end for
+
+   return geol
+
+end draw_polygon
+
+#------------------------------
+function mvl_study_areas()
+
+   areas = []
+   areas = areas & [draw_area_A()]
+   areas = areas & [draw_area_B()]
+   areas = areas & [draw_area_C()]
+   areas = areas & [draw_area_D()]
+   areas = areas & [draw_area_E()]
+   areas = areas & [draw_area_F()]
+   areas = areas & [draw_area_G()]
+   areas = areas & [draw_area_H()]
+   areas = areas & [draw_area_N()]
+   areas = areas & [draw_area_S()]
+
+   return areas
+
+end mvl_study_areas
+
+#------------------------------
+function draw_area_A()
+   lat = [-33.73, -36, -31, -28.6]
+   lon = [-53.37, -48, -43, -48.82]
+   incrm = 1
+   return draw_polygon(lat,lon,incrm)
+end draw_area_A
+
+function draw_area_B()
+   lat = [-28.6, -31, -26, -23.02]
+   lon = [-48.82, -43, -38, -42]
+   incrm = 1
+   return draw_polygon(lat,lon,incrm)
+end draw_area_B
+
+function draw_area_C()
+   lat = [-28.6, -23.02]
+   lon = [-48.82, -42]
+   incrm = 1
+   return draw_polygon(lat,lon,incrm)
+end draw_area_C
+
+function draw_area_D()
+   lat = [-23.02, -26, -21, -17.77]
+   lon = [-42, -38, -33, -39.02]
+   incrm = 1
+   return draw_polygon(lat,lon,incrm)
+end draw_area_D
+
+function draw_area_E()
+   lat = [-17.77, -21, -15, -13.02]
+   lon = [-39.02, -33, -33, -38.53]
+   incrm = 1
+   return draw_polygon(lat,lon,incrm)
+end draw_area_E
+
+function draw_area_F()
+   lat = [-13.02, -15, -10, -3, -5.75]
+   lon = [-38.53, -33, -29, -29, -35.2]
+   incrm = 1
+   return draw_polygon(lat,lon,incrm)
+end draw_area_F
+
+function draw_area_G()
+   lat = [-5.75, -3, 2, -2.48]
+   lon = [-35.02, -29, -38, -44.3]
+   incrm = 1
+   return draw_polygon(lat,lon,incrm)
+end draw_area_G
+
+function draw_area_H()
+   lat = [-2.48, 2, 7, 4.43]
+   lon = [-44.3, -38, -48, -51.55]
+   incrm = 1
+   return draw_polygon(lat,lon,incrm)
+end draw_area_H
+
+function draw_area_N()
+   lat = [-15, 7, 7, 2, -3, -10]
+   lon = [-20, -20, -48, -38, -29, -29]
+   incrm = 1
+   return draw_polygon(lat,lon,incrm)
+end draw_area_N
+
+function draw_area_S()
+   lat = [-15, -15, -36, -36, -31, -26, -21]
+   lon = [-33, -20, -20, -48, -43, -38, -33]
+   incrm = 1
+   return draw_polygon(lat,lon,incrm)
+end draw_area_S
