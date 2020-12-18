@@ -1,0 +1,22 @@
+object,
+    class            = NAVY_ACCESS,
+    type             = Data,
+    can_be_created   = True,
+    definition_file  = '$METVIEW_DIR_SHARE/etc/NavyAccessDef',
+    rules_file       = '$METVIEW_DIR_SHARE/etc/NavyAccessRules',
+    default_name     = 'GAIA',
+    macro            = gaia,
+    expand           = 528,  #EXPAND_DEFAULTS|EXPAND_2ND_NAME
+    editor_type      = SimpleEditor,
+    pixmap           = '$METVIEW_DIR_SHARE/icons/NAVYACCESS.icon'
+
+state,
+    class            = NAVY_ACCESS,
+    output_class     = GRIB/BUFR/IMAGE/NETCDF,
+    service          = NavyAccess
+
+service,
+    timeout  = $timeout,
+    cmd      = '$metview_command $METVIEW_BIN/NavyAccess',
+    name     = 'NavyAccess',
+    fullname = NavyAccess
