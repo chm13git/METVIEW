@@ -1,0 +1,211 @@
+#
+#          NAVY ACCESS EDITOR: definition file
+#
+NAVY_ACCESS
+{
+  TYPE
+  {
+  MODEL       ; MODEL
+  OBSERVATION ; OBSERVATION
+  GEONETCAST  ; GEONETCAST
+  } = MODEL
+
+  DATA
+  {
+     GOES-16
+     SEA ICE
+  } = GOES-16
+
+  OBSTYPE 
+  {
+  SYNOP     ; SYNOP
+  ASCAT     ; ASCAT
+  #SHIP ; SHIP
+  #UPPERAIR ; UPPERAIR
+  #AIRCRAFT ; AIRCRAFT
+  #PREPBUFR ; PREPBUFR
+  #EMA_INMET ; EMA_INMET
+  #1bamua ; 1bamua
+  #1bamub ; 1bamub
+  #1bhrs3 ; 1bhrs3
+  #airsev ; airsev
+  #gpsro ; gpsro
+  #mtiasi ; mtiasi
+  #satwnd ; satwnd
+  #SAnl ; SAnl
+  } = SYNOP
+
+  MODEL
+  {
+    COSMO      ; COSMO
+    COSMO_ANT  ; COSMO_ANT
+    ICON       ; ICON
+    ICON_SINGLE; ICON_SINGLE
+    WRF        ; WRF
+    GFS        ; GFS
+    ECMWF      ; ECMWF
+    WW3_ICON   ; WW3_ICON
+    WW3_COSMO  ; WW3_COSMO
+    WW3_GFS    ; WW3_GFS
+    HYCOM 112  ; HYCOM_112
+    HYCOM 124  ; HYCOM_124
+    ADCIRC     ; ADCIRC
+  } = COSMO
+
+
+  LEVEL_TYPE
+  {
+    SURFACE        ; SURFACE
+    PRESSURE_LEVEL ; PRESSURE_LEVEL
+    MODEL_LEVEL    ; MODEL_LEVEL
+  } = PRESSURE_LEVEL
+
+  LEVEL_LIST
+  {
+    *
+    /
+  } = 1000/850/500/250
+
+  PARAMETER [ help = help_multiple_selection, exclusive = False ]
+  {
+     #GEOPOTENTIAL                                  ;  FI       ;129
+     #U COMPONENT OF WIND                           ;  U        ;131
+     #V COMPONENT OF WIND                           ;  V        ;132
+     #10 METRE U WIND COMPONENT                     ;  U_10M    ;165
+     #10 METRE V WIND COMPONENT                     ;  V_10M    ;166
+     #2 METRE TEMPERATURE                           ;  T_2M     ;167
+     #2 METRE DEWPOINT TEMPERATURE                  ;  TD_2M    ;168
+     #PRESSURE REDUCED TO MSL                       ;  PMSL     ;260074
+     #LARGE SCALE RAIN                              ;  RAIN_GSP ;500134
+     #CONVECTIVE RAIN                               ;  RAIN_CON ;500137
+     #CONVECTIVE SNOWFALL WATER EQUIVALENT          ;  SNOW_CON ;500052
+     #LARGE SCALE SNOWFALL                          ;  SNOW_GSP ;500053
+     #MAXIMUM WIND 10M                              ;  VMAX_10M ;500164
+     Albedo for diffusive radiation ; alb_rad
+     Surface latent heat flux mean ; alhfl_s
+     Surface net solar radiation mean ; asob_s
+     TOA net solar radiation mean     ; asob_t
+     Surface down solar diff. rad     ; aswdifd_s
+     Surface up solar diff. rad     ; aswdifu_s
+     Surface down solar direct rad     ; aswdir_s
+     Conv avail pot energy     ; cape_con
+     Surface layer parcel     ; cape_ml
+     latitude of the midpoints of triangle circumcenters ; clat
+     Cloud cover ; clc
+     High level clouds ; clch
+     Low level clouds ; clcl
+     Mid level clouds ; clcm
+     Total cloud cover ; clct
+     Modified total cloud cover for media ; clct_mod
+     Modified cloud depth for media ; cldepth
+     longitude of the midpoints of triangle circumcenters ;clon
+     latitude of the edge midpoints ; elat
+     longitude of the edge midpoints ; elon
+     Geopotential at cell centre ; fi
+     Fraction of sea ice ; fr_ice
+     Fraction lake ; fr_lake
+     Fraction land ; fr_land
+     Snow depth ; h_snow
+     Height of convective cloud base ; hbas_con
+     Geometric height at half level center ; hhl
+     Topographic height at cell centers ; hsurf
+     Height of convective cloud top ; htop_con
+     Height of top of dry convection ; htop_dc
+     Height of 0 deg C leve ; hzerocl
+     Pressure at half level ; p
+     Plant covering degree  ; plcov
+     Mean sea level pressure ; pmsl
+     Surface pressure ; ps
+     Specific humidity at the surface ; qv
+     Specific humidity ; qv_s
+     Convective rain ; rain_con
+     Gridscale rain ; rain_gsp
+     Relative humidity ; relhum
+     Relative humidity in 2m ; relhum_2m
+     Snow density ; rho_snow
+     Convective snow ; snow_con
+     Gridscale snow ; snow_gsp
+     Soil type ; soiltyp
+     Temperature ; t
+     Temperature in 2m ; t_2m
+     Weighted surface temperature ; t_g
+     Temperature of the snow-surface ; t_snow
+     Weighted soil temperature ; t_so
+     Dew-point in 2m ; td_wm
+     Turbulent kinetic energy  ; tke
+     Max 2m temperature ; tmax_2m
+     Min 2m temperature ; tmin_2m
+     Total precip ; tot_prec
+     Zonal wind ; u
+     Zonal wind in 10m ; u_10m
+     Meridional wind  ; v
+     Meridional wind in 10m ; v_10m
+     Max meridional wind in 10m ; vmax_10m
+     Vertical velocity ; w
+     Water equivalent of snow ; w_snow
+     Total water content ; w_so
+     Significant weather ; ww
+     Roughness length ; z0
+     @
+     /
+  } = fi
+
+  DATE
+  {
+     JANUARY      ;   JAN
+     FEBRUARY     ;   FEB
+     MARCH        ;   MAR
+     APRIL        ;   APR
+     MAY          ;   MAY
+     JUNE         ;   JUN
+     JULY         ;   JUL
+     AUGUST       ;   AUG
+     SEPTEMBER    ;   SEP
+     OCTOBER      ;   OCT
+     NOVEMBER     ;   NOV
+     DECEMBER     ;   DEC
+     *   
+     CURRENT DATE ; 0
+     YESTERDAY    ; -1
+     TO           ; TO
+     BY           ; BY
+     /
+     OFF
+  } = CURRENT DATE
+
+  UNKNOWN1
+  {
+       METOPB ; metopb
+       METOPC ; metopc
+  } = METOPB
+
+  UNKNOWN2
+  {
+       COA_OVW ; coa_ovw
+       250     ; 250
+  } = coa_ovw
+
+  TIME
+  {
+    00
+    06
+    12
+    18
+  } = 00
+
+  STEP
+  {
+    TO  ; TO
+    BY  ; BY
+    ALL ; ALL
+    /
+    *   
+    } = 0
+
+   GRID
+   {
+    OFF
+    /
+    *
+   } = OFF
+}

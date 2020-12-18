@@ -1,0 +1,35 @@
+%if TYPE = MODEL %then
+    %unset OBSTYPE
+    %unset SATELLITE
+    %unset UNKNOWN1
+    %unset UNKNOWN2
+    %unset DATA
+
+%if TYPE = OBSERVATION %then
+    %unset MODEL
+    %unset LEVEL_TYPE
+    %unset LEVEL_LIST
+    %unset PARAMETER
+    %unset STEP
+    %unset DATA
+
+%if TYPE = GEONETCAST %then
+    %unset MODEL
+    %unset OBSTYPE
+    %unset LEVEL_TYPE
+    %unset LEVEL_LIST
+    %unset PARAMETER
+    %unset STEP
+    %unset SATELLITE
+    %unset UNKNOWN1
+    %unset UNKNOWN2
+
+%if MODEL = WW3_ICON %then
+    %unset PARAMETER
+    %unset LEVEL_TYPE
+    %unset LEVEL_LIST
+    %unset STEP
+
+%if LEVEL_TYPE = SURFACE %then
+    %unset LEVEL_LIST
+
