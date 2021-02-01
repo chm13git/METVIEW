@@ -1,0 +1,5 @@
+NAVY_ACCESS,
+    TYPE       = OBSERVATION,
+    OBSTYPE    = ASCAT,
+    DATE       = 20200804
+

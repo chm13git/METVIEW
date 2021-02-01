@@ -1,0 +1,7 @@
+NAVY_ACCESS,
+    MODEL      = WW3_COSMO,
+    LEVEL_TYPE = SURFACE,
+    PARAMETER  = hs,
+    DATE       = 20210111,
+    STEP       = 000/006
+

@@ -1,0 +1,7 @@
+NAVY_ACCESS,
+    MODEL      = ICON,
+    LEVEL_TYPE = SURFACE,
+    PARAMETER  = PMSL,
+    DATE       = 20210113,
+    STEP       = 24/TO/72/BY/6
+
