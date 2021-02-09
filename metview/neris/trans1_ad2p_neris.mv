@@ -13,10 +13,34 @@
 # Description: Auxiliao a decisao using wave height and maximum wind
 # -------------------------------------------------------------------
 
+wave_height_vd = mcont(
+    contour                        : "off",
+    contour_level_selection_type   : "interval",
+    contour_min_level              : 1.5,
+    contour_interval               : 20,
+    contour_label                  : "off",
+    contour_shade                  : "on",
+    contour_shade_method           : "area_fill",
+    contour_shade_max_level_colour : "RGBA(1,1,0,0.502)",
+    contour_shade_min_level_colour : "RGBA(1,1,0,0.502)",
+    contour_threads                : 1
+    )
+
+vmax_vd = mcont(
+    contour                          : "off",
+    contour_level_selection_type     : "interval",
+    contour_min_level                : 15,
+    contour_interval                 : 120,
+    contour_label                    : "off",
+    contour_shade                    : "on",
+    contour_shade_method             : "area_fill",
+    contour_shade_max_level_colour   : "red",
+    grib_scaling_of_retrieved_fields : "off"
+    )
 # STATIC PARAMETERS
 
 # Aux Title
-auxtitle = "CHM - Modelo COSMO - WW3 - Aspirantex/2021 - Operações Aéreas"
+auxtitle = "CHM - Modelo COSMO - WW3 - Aspirantex/2021 - Operações Aéreas" # Preencher modelo automat!!
 
 # Plot Areas
 area = [-34,-54,-22,-40] # [lats,lonw,latn,lone]
@@ -57,7 +81,6 @@ netcdf_dimension_setting        : 'time:' & t, # Pq nao abre todos os tempos?
 netcdf_data                     : ww3cosmo
 )
 
-
 # HS title
 hs_title = mtext(
 	text_line_count		: 1,
@@ -72,12 +95,16 @@ hs_title = mtext(
 hs_vd = mcont(
     contour                         : 'off',
     contour_level_selection_type    : 'level_list',
+    #contour_level_selection_type    : 'interval',
     contour_level_list              : [hsmax, 20], # VRF como INC max da var!!!
+    #contour_min_level               : hsmax, # VRF como INC max da var!!!
+    #contour_interval		    : 20,
     contour_label                   : 'off',
     contour_shade                   : 'on',
     contour_shade_method            : 'area_fill',
-#    contour_shade_min_level_colour : 'RGBA(1.0000,0.1451,0.0000)'
-    contour_shade_min_level_colour  : 'RGBA(1.0000,0.9647,0.0000,0.5)' # Esse 0.4980 e a transparencia!
+    contour_shade_min_level_colour : 'RGBA(1.0,1.0,0.0,1.0)'
+#    contour_shade_min_level_colour  : 'RGBA(1.0000,0.9647,0.0000,0.5)', # Esse 0.4980 e a transparencia!
+#    contour_shade_max_level_colour  : 'RGBA(1.0000,0.9647,0.0000,0.5)', # Esse 0.4980 e a transparencia!
     )
 
 # Set shade colour for all fields to red
@@ -115,11 +142,16 @@ ws_title = mtext(
 ws_vd = mcont(
     contour                        : 'off',
     contour_level_selection_type   : 'level_list',
+    #contour_level_selection_type   : 'interval',
     contour_level_list             : [wsmax, 100], # VRF como INC max da var!!!
+    #contour_min_level             : wsmax, # VRF como INC max da var!!!
+    #contour_interval                 : 120,
     contour_label                  : 'off',
     contour_shade                  : 'on',
     contour_shade_method           : 'area_fill',
+    #contour_shade_min_level_colour : 'red'
     contour_shade_min_level_colour : 'RGBA(1.0,0.0,0.0,0.5)'
+    #contour_shade_max_level_colour : 'RGBA(1.0,0.0,0.0,0.5)',
     #contour_shade_min_level_colour : 'RGBA(1.0000,0.1451,0.0000,1.0)'
     )
 
@@ -223,7 +255,8 @@ maskout = mcoast(
     map_grid_longitude_increment    : 2,
     map_grid_latitude_increment     : 2,
     map_label_height                : 0.4,
-    map_label_top                   : 'off'
+    map_label_top                   : 'off',
+    map_label_right                 : 'off'
    )
 
 maskout_f = mcoast(
@@ -239,7 +272,8 @@ maskout_f = mcoast(
     map_grid_longitude_increment    : 3,
     map_grid_latitude_increment     : 2,
     map_label_height                : 0.3,
-    map_label_top                   : 'off'
+    map_label_top                   : 'off',
+    map_label_left                  : 'off'
    )
 
 
@@ -279,12 +313,13 @@ notitle = mtext(
 dw = build_layout(area, area_icon)
 
 # Device description
-out = png_output(output_name : 'ad_2p_' & pl[t])
+out = png_output(output_name : '2ad_2p_' & pl[t])
 setoutput(out)
 
 # Plotting
 plot(dw[1], study_area, study_area_vd)
 #plot(dw[2], title, hs, hsvd_red, ws10kt, wsvd_red, hv, hvvd_red, cb, cbvd_red, m5cont, m5cont_vd, maskout)
+#plot(dw[2], title, ws10kt, vmax_vd, hs, wave_height_vd, m5cont, m5cont_vd, maskout)
 plot(dw[2], title, hs, hs_vd, ws10kt, ws_vd, m5cont, m5cont_vd, maskout)
 plot(dw[4], notitle, hs_title, hs, hs_vd, maskout_f, m5cont, m5cont_vd)
 plot(dw[5], notitle, ws_title, ws10kt, ws_vd, maskout_f, m5cont, m5cont_vd)
