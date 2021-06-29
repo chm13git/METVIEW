@@ -1,0 +1,597 @@
+# Metview Macro
+
+#  **************************** LICENSE START ***********************************
+# 
+#  Copyright 2018 ECMWF. This software is distributed under the terms
+#  of the Apache License version 2.0. In applying this license, ECMWF does not
+#  waive the privileges and immunities granted to it by virtue of its status as
+#  an Intergovernmental Organization or submit itself to any jurisdiction.
+# 
+#  ***************************** LICENSE END ************************************
+
+# -------------------------------------------------------------------
+# Description: Auxiliao a decisao using wave height and maximum wind
+# -------------------------------------------------------------------
+
+# STATIC PARAMETERS
+# Loading input parameters from file input_ad
+
+# Make sure the full path is given
+args = arguments()
+inputf = args[1]
+
+# Read ascii file
+if (not(exist(inputf))) then
+	fail("ERROR! Specified input file does not exist!")
+else
+	print(inputf)
+	inputp = read(inputf)
+end if
+
+# Retrieve parameters
+pars = nil
+for i = 1 to count(inputp) do
+	par = parse(inputp[i],",") # Splits line at delimiter
+	pars = pars & [par[2]]
+end for
+print(pars)
+
+# Saving pars into vars
+north		= pars[1]
+south		= pars[2]
+east		= pars[3]
+west		= pars[4]
+
+# Model choices
+modatm		= pars[5] # COSMO/WRF/ICON/GFS
+modgrid		= pars[6] # met/ant/sse22/wrf10km
+modwave		= pars[7] # ww3cosmo/ww3icon/ww3gfs
+
+# Aux Titles
+auxtitle	= pars[8]
+figname		= pars[9]
+
+# Date & run
+DATE		= pars[10] # 20210629
+RUN		= pars[11] # 00/12
+
+# Setting Progs (given in hours from the analysis from 0 to 96, or 120)
+IPROG		= pars[12] # Initial prog
+FPROG		= pars[13] # Final prog
+
+# Thresholds
+hslim		= pars[14] # height significant [meters]
+wslim		= pars[15] # wind speed [knots]
+hvlim		= pars[16] # horizontal visibility [MN]
+cblim		= pars[17] # cloud base [ft]
+pclim		= pars[18] # precipitation [mm/h]
+nvlim		= pars[19] # snow [mm/h]
+
+# Setting Plot Areas
+area = [south,west,north,east]	# [lats,lonw,latn,lone]
+area_icone = [-61,-82,16,-14]	# Fixed
+lat_area = [area[1], area[3], area[3], area[1], area[1]] # Draw a four sided polygon
+lon_area = [area[2], area[2], area[4], area[4], area[2]]
+
+# Setting Date/Run from input args
+print ("Data     : " & DATE)
+RUN = left_pad_number(RUN,2); print ("Rodada   : " & RUN)
+
+# Selecting wave model file
+if modatm = "COSMO" and modgrid = "met" then
+	ww3name = '/home/operador/gaia/MODEL/WW3_COSMO/ww3cosmo_met_' & DATE & RUN & '.nc'
+end if
+if modatm = "COSMO" and modgrid = "ant" then
+	ww3name = '/home/operador/gaia/MODEL/WW3_ICON/ww3icon_ant_' & DATE & RUN & '.nc'
+end if
+if modatm = "ICON" and modgrid = "met" then
+	ww3name = '/home/operador/gaia/MODEL/WW3_ICON/ww3icon_met_' & DATE & RUN & '.nc'
+end if
+if modatm = "ICON" and modgrid = "ant" then
+	ww3name = '/home/operador/gaia/MODEL/WW3_ICON/ww3icon_ant_' & DATE & RUN & '.nc'
+end if
+if modatm = "WRF" and modgrid = "met" then
+	ww3name = '/home/operador/gaia/MODEL/WW3_GFS/ww3gfs_met_' & DATE & RUN & '.nc'
+end if
+if modatm = "WRF" and modgrid = "ant" then
+	ww3name = '/home/operador/gaia/MODEL/WW3_GFS/ww3gfs_ant_' & DATE & RUN & '.nc'
+end if
+if modatm = "GFS" and modgrid = "met" then
+	ww3name = '/home/operador/gaia/MODEL/WW3_GFS/ww3gfs_met_' & DATE & RUN & '.nc'
+end if
+if modatm = "GFS" and modgrid = "ant" then
+	ww3name = '/home/operador/gaia/MODEL/WW3_GFS/ww3gfs_ant_' & DATE & RUN & '.nc'
+end if
+
+wavemod = read(ww3name)
+
+print('Wave Model: ' & ww3name)
+
+# Create a Prog List
+#pl = 54
+pl = nil
+for i = iprog to fprog do
+	if mod(i,3) = 0 then
+		pl = pl & [left_pad_number(i,3)]
+	end if
+end for
+print ("Lista de Prognósticos: ", pl)
+
+loop prog in pl
+#for t = (pl+1) to (pl+1) do
+
+# Because analysis is t = 1 in the NC file
+prognc = number(prog)+1
+
+# define netcdf plotting
+hs = netcdf_visualiser(
+netcdf_plot_type                : 'geo_matrix',
+netcdf_latitude_variable        : 'latitude',
+netcdf_longitude_variable       : 'longitude',
+netcdf_value_variable           : 'hs',
+netcdf_dimension_setting_method : 'index',
+netcdf_dimension_setting        : 'time:' & prognc,
+netcdf_data                     : wavemod
+)
+
+hsmax = maxvalue(hs)
+
+# HS title
+hs_title = mtext(
+	text_line_count		: 1,
+	text_line_1		: 'Ondas > ' & hslim & ' m',
+	text_mode		: 'positional',
+	text_box_x_position	: 0.7,
+	text_box_y_position	: 3.3,
+	text_font_size		: 0.5,
+	text_colour		: 'BLACK'
+	)
+# Define wave visual definition
+hs_vd = mcont(
+    contour                         : 'off',
+    contour_level_selection_type    : 'level_list',
+    contour_level_list              : [hslim, hsmax],
+    contour_label                   : 'off',
+    contour_shade                   : 'on',
+    contour_shade_method            : 'area_fill',
+#    contour_shade_min_level_colour  : 'RGBA(1.0000,0.9647,0.0000,1.0)' # Esse 0.4980 e a transparencia!
+#    legend                         : 'on'
+    contour_shade_min_level_colour  : 'RGBA(1.0000,0.9647,0.0000,1.0)'
+    )
+
+# Set shade colour for all fields to red
+hsvd_red = mcont(
+    contour                         : 'off',
+    contour_level_selection_type    : 'level_list',
+    contour_level_list              : [hslim, hsmax], # VRF como INC max da var!!!
+    contour_label                   : 'off',
+    contour_shade                   : 'on',
+    contour_shade_method            : 'area_fill',
+    contour_shade_min_level_colour  : 'RGBA(1.0,0.1,0.0,1.0)'
+    )
+
+# Importing : /neris/data/cosmo_met5_00_20210119000
+atmmod = read('/home/operador/gaia/MODEL/COSMO/cosmo_met5_' & RUN & '_' & DATE & prog)
+
+# Importing COSMO data of 1 prog older than current for prec calculations
+if prog = "000" then
+	atmmod_m1p = atmmod
+else
+	prog_m1p = number(prog)-3
+	prog_m1p = left_pad_number(prog_m1p,3)
+	atmmod_m1p = read('/home/operador/gaia/MODEL/COSMO/cosmo_met5_' & RUN & '_' & DATE & prog_m1p)
+end if
+
+# Converting 'u' and 'v' in m/s into wind speed in kt
+u10kt = atmmod[559]*1.944
+v10kt = atmmod[560]*1.944
+
+ws10kt = sqrt(u10kt^2 + v10kt^2)
+
+# WS title
+ws_title = mtext(
+	text_line_count		: 1,
+	text_line_1		: 'Vento > ' & wsmax & ' kt',
+	text_mode		: 'positional',
+	text_box_x_position	: 0.7,
+	text_box_y_position	: 3.3,
+	text_font_size		: 0.5,
+	text_colour		: 'BLACK'
+	)
+
+# Define wind speed visual definitions
+ws_vd = mcont(
+    contour                        : 'off',
+    contour_level_selection_type   : 'level_list',
+    contour_level_list             : [wsmax, 100], # VRF como INC max da var!!!
+    contour_label                  : 'off',
+    contour_shade                  : 'on',
+    contour_shade_method           : 'area_fill',
+    contour_shade_min_level_colour : 'RGBA(1.0,0.5,0.0,1.0)'
+    #contour_shade_min_level_colour : 'RGBA(1.0000,0.1451,0.0000,1.0)'
+    )
+
+# Set shade colour for all fields to red
+wsvd_red = mcont(
+    contour                        : 'off',
+    contour_level_selection_type   : 'level_list',
+    contour_level_list             : [wsmax, 100], # VRF como INC max da var!!!
+    contour_label                  : 'off',
+    contour_shade                  : 'on',
+    contour_shade_method           : 'area_fill',
+    contour_shade_min_level_colour : 'RGBA(1.0,0.1,0.0,1.0)'
+    )
+
+
+# Converting horizontal visibility from M to MN
+hv = atmmod[725] * 0.000539957
+
+# HV title
+hv_title = mtext(
+	text_line_count		: 1,
+	text_line_1		: 'Vis < ' & hvmin & ' MN',
+	text_mode		: 'positional',
+	text_box_x_position	: 0.8,
+	text_box_y_position	: 3.3,
+	text_font_size		: 0.5,
+	text_colour		: 'BLACK'
+	)
+
+# Define horizontal visibility visual definitions
+hv_vd = mcont(
+    contour                        : 'off',
+    contour_level_selection_type   : 'level_list',
+    contour_level_list             : [0.0, hvmin], # VRF como INC min da var!!!
+    contour_label                  : 'off',
+    contour_shade                  : 'on',
+    contour_shade_method           : 'area_fill',
+#    contour_shade_min_level_colour : 'RGBA(1.0000,0.1451,0.0000)'
+    contour_shade_min_level_colour : 'RGBA(0.4510,0.6392,1.0000,1.0)'
+    )
+
+# Define horizontal visibility visual definitions
+hvvd_red = mcont(
+    contour                         : 'off',
+    contour_level_selection_type    : 'level_list',
+    contour_level_list              : [0.0, hvmin], # VRF como INC max da var!!!
+    contour_label                   : 'off',
+    contour_shade                   : 'on',
+    contour_shade_method            : 'area_fill',
+    contour_shade_min_level_colour  : 'RGBA(1.0,0.1,0.0,1.0)'
+    )
+
+# Converting cloud base from M to FT
+cb = atmmod[598] * 3.281
+
+# CB title
+cb_title = mtext(
+	text_line_count		: 1,
+	text_line_1		: 'Base < ' & cbmin & ' pés',
+	text_mode		: 'positional',
+	text_box_x_position	: 0.7,
+	text_box_y_position	: 3.3,
+	text_font_size		: 0.5,
+	text_colour		: 'BLACK'
+	)
+
+# Define CLOUD BASE visual definitions
+cb_vd = mcont(
+    contour                        : 'off',
+    contour_level_selection_type   : 'level_list',
+    contour_level_list             : [0.0, cbmin], # VRF como INC min da var!!!
+    contour_label                  : 'off',
+    contour_shade                  : 'on',
+    contour_shade_method           : 'area_fill',
+    contour_shade_min_level_colour : 'RGBA(0.4235,0.6510,0.1922,1.0)'
+    )
+
+cbvd_red = mcont(
+    contour                         : 'off',
+    contour_level_selection_type    : 'level_list',
+    contour_level_list              : [0.0, cbmin], # VRF como INC max da var!!!
+    contour_label                   : 'off',
+    contour_shade                   : 'on',
+    contour_shade_method            : 'area_fill',
+    contour_shade_min_level_colour  : 'RGBA(1.0,0.1,0.0,1.0)'
+    )
+
+# Converting TOTAL PREC from mm/3h to mm/h
+pcf	= atmmod[555] + atmmod[557]
+pci	= atmmod_m1p[555] + atmmod_m1p[557]
+pc	= (pcf - pci) / 3
+
+# PREC title
+pc_title = mtext(
+	text_line_count		: 1,
+	text_line_1		: 'Prec > ' & pcmax & ' mm/h',
+	text_mode		: 'positional',
+	text_box_x_position	: 0.7,
+	text_box_y_position	: 3.3,
+	text_font_size		: 0.5,
+	text_colour		: 'BLACK'
+	)
+
+# Define TOTAL PREC visual definitions
+pc_vd = mcont(
+    contour                        : 'off',
+    contour_level_selection_type   : 'level_list',
+    contour_level_list             : [pcmax, 1000], # VRF como INC max da var!!!
+    contour_label                  : 'off',
+    contour_shade                  : 'on',
+    contour_shade_method           : 'area_fill',
+    contour_shade_min_level_colour : 'RGBA(0.7152,0.0098,0.9941,1.0)'
+    #contour_shade_min_level_colour : 'RGBA(1.0000,0.1451,0.0000,1.0)'
+    )
+
+# Set shade colour for all fields to red
+pcvd_red = mcont(
+    contour                        : 'off',
+    contour_level_selection_type   : 'level_list',
+    contour_level_list             : [wsmax, 1000], # VRF como INC max da var!!!
+    contour_label                  : 'off',
+    contour_shade                  : 'on',
+    contour_shade_method           : 'area_fill',
+    contour_shade_min_level_colour : 'RGBA(1.0,0.1,0.0,1.0)'
+    )
+
+# Coastlines to hide all data over the land
+# and draw state boundaries.
+maskout = mcoast(
+    map_coastline_land_shade	    : 'on',
+    map_coastline_land_shade_colour : 'grey',
+    map_boundaries                  : 'on',
+    map_boundaries_colour           : 'black',
+    map_administrative_boundaries   : 'on',
+    map_administrative_boundaries_style : 'solid',
+    map_administrative_boundaries_countries_list : 'bra',
+    map_grid_line_style             : 'dash',
+    map_grid_colour                 : 'RGBA(0.5,0.5,0.5,0.3)',
+    map_grid_longitude_increment    : 1,
+    map_grid_latitude_increment     : 1,
+    map_label_height                : 0.4,
+    map_label_right                 : 'off',
+    map_label_top                   : 'off'
+   )
+
+maskout_f = mcoast(
+    map_coastline_land_shade        : 'on',
+    map_coastline_land_shade_colour : 'grey',
+    map_boundaries                  : 'on',
+    map_boundaries_colour           : 'black',
+    map_administrative_boundaries   : 'on',
+    map_administrative_boundaries_style : 'solid',
+    map_administrative_boundaries_countries_list : 'bra',
+    map_grid_line_style             : 'dash',
+    map_grid_colour                 : 'RGBA(0.5,0.5,0.5,0.3)',
+    map_grid_longitude_increment    : 2,
+    map_grid_latitude_increment     : 2,
+    map_label_height                : 0.3,
+    map_label_left                  : 'off',
+    map_label_top                   : 'off'
+   )
+
+
+# Define metarea V
+m5cont = mvl_study_areas()
+m5cont_vd = mgraph(
+    graph_line_colour    : 'black',
+    graph_line_thickness : 2
+    )
+
+
+# Study area definition
+study_area = mvl_geopolyline(lat_area, lon_area, 1)
+study_area_vd = mgraph(
+    graph_type         : 'area',
+    graph_line_colour  : 'black',
+    graph_shade_colour : 'RGBA(0.9412,0.4745,0.3765,1.0)'
+    )
+
+# Title definition
+title = title_definition(ws10kt,auxtitle,prog) # Using title def from the 10m wind!
+
+# Text Definitions not to plot the title
+notitle = mtext(
+	text_line_count		: 0)
+
+# Call function to build layout (defined at end of macro)
+dw = build_layout(area, area_icone)
+
+# Device description
+out = png_output(output_name : "auxilio_mv_" & figname & RUN & "_" & prog)
+setoutput(out)
+
+# Plotting
+
+# Icone
+plot(dw[1], study_area, study_area_vd)
+
+# Aux plots
+plot(dw[3], notitle, hs_title, hs, hs_vd, maskout_f, m5cont, m5cont_vd)
+plot(dw[4], notitle, ws_title, ws10kt, ws_vd, maskout_f, m5cont, m5cont_vd)
+plot(dw[5], notitle, hv_title, hv, hv_vd, maskout_f, m5cont, m5cont_vd)
+plot(dw[6], notitle, cb_title, cb, cb_vd, maskout_f, m5cont, m5cont_vd)
+plot(dw[7], notitle, pc_title, pc, pc_vd, maskout_f, m5cont, m5cont_vd)
+
+# Main plot
+#plot(dw[2], title, hs, hsvd_red, ws10kt, wsvd_red, hv, hvvd_red, cb, cbvd_red, m5cont, m5cont_vd, maskout)
+plot(dw[2], title, hs, hsvd_red, ws10kt, wsvd_red, hv, hvvd_red, cb, cbvd_red, pc, pcvd_red, m5cont, m5cont_vd, maskout)
+
+print("Figure " & figname & prog & ".png done!")
+
+end loop
+
+#------------------------------------------
+# FUNCTION SECTION
+#------------------------------------------
+
+# Function to build the layout
+function build_layout(area, area_icone)
+
+   # Coastline description
+   coast_sea = mcoast(
+    map_coastline_sea_shade        : 'on',
+    map_coastline_sea_shade_colour : 'white',
+    map_grid                       : 'off',
+    map_label                      : 'off'
+   )
+
+   coast_icone = mcoast(
+    map_coastline_land_shade        : 'on',
+    map_coastline_land_shade_colour : 'grey',
+    map_coastline_sea_shade         : 'on',
+    map_coastline_sea_shade_colour  : 'white',
+    map_coastline_resolution        : 'low',
+    map_boundaries                  : 'on',
+    map_boundaries_colour           : 'black',
+    map_grid_line_style             : 'dash',
+    map_grid_colour                 : 'RGBA(0.5,0.5,0.5,0.3)',
+    map_label                       : 'off'
+   )
+
+   # Geographical view descriptions
+#   gview = geoview(
+#      map_projection      : 'cylindrical',
+#      map_area_definition : 'corners',
+#      area                : area,
+#      coastlines          : coast_sea
+#     )
+
+# Main plot area
+   gview = geoview(
+      map_area_definition : "corners",
+      area                : area,
+      coastlines          : coast_sea,
+      subpage_x_position  : 3.5, #7.5
+      subpage_y_position  : 3.0, #5
+      subpage_x_length    : 85.0, #85
+      subpage_y_length    : 78.5 #85
+#      subpage_clipping    : "on"
+     )
+
+   gview_aux = geoview(
+      map_area_definition : "corners",
+      area                : area,
+      coastlines          : coast_sea
+#      subpage_x_position  : 3.5, #7.5
+#      subpage_y_position  : 3.0, #5
+#      subpage_x_length    : 85.0, #85
+#      subpage_y_length    : 78.5 #85
+#      subpage_clipping    : "on"
+     )
+
+   gview_icone = geoview(
+      map_projection      : 'cylindrical',
+      map_area_definition : 'corners',
+      area                : area_icone,
+      coastlines          : coast_icone,
+      subpage_x_position  : 1.0, #7.5
+      subpage_y_position  : 1.0, #5
+      subpage_x_length    : 100, #85
+      subpage_y_length    : 100 #85
+     )
+
+   # Page description
+   page1 = plot_page(
+       bottom   : 15,
+       right    : 10,
+       view     : gview_icone
+      )
+
+   page2 = plot_page(
+	top	: 0,
+	bottom	: 100,
+	left	: 0,
+	right	: 100,
+	view	: gview
+      )
+   page3 = plot_page(
+       top      : 0.5,    # max que o TOPO do plot pode ir
+       bottom   : 19,   # max que a base do plot pode ir
+       right    : 105,   # vc entendeu...
+       left     : 80,
+       view : gview_aux
+      )
+   page4 = plot_page(
+       top      : 20,    # max que o TOPO do plot pode ir
+       bottom   : 38.5,   # max que a base do plot pode ir
+       right    : 105,   # vc entendeu...
+       left     : 80,
+       view : gview_aux
+      )
+   page5 = plot_page(
+       top      : 39.5,    # max que o TOPO do plot pode ir
+       bottom   : 58,   # max que a base do plot pode ir
+       right    : 105,   # vc entendeu...
+       left     : 80,
+       view : gview_aux
+      )
+   page6 = plot_page(
+       top      : 59,    # max que o TOPO do plot pode ir
+       bottom   : 77.5,   # max que a base do plot pode ir
+       right    : 105,   # vc entendeu...
+       left     : 80,
+       view : gview_aux
+      )
+   page7 = plot_page(
+       top      : 78.5,    # max que o TOPO do plot pode ir
+       bottom   : 97,   # max que a base do plot pode ir
+       right    : 105,   # vc entendeu...
+       left     : 80,
+       view : gview_aux
+      )
+
+   # Auxiliary plot areas - [TOP,BOTTOM,LEFT,RIGHT], values between 0-100
+   # More: /usr/local/lib/metview-bundle/share/metview/app-defaults/CommonMacroFuncs/mvl_regular_layout_area
+#   page3 = mvl_regular_layout_area(gview,1,5,1,1,[20,97,77.5,100])
+
+#   page4 = mvl_regular_layout_area(gview,1,5,1,1,[20,97,75,100])
+
+#   page5 = mvl_regular_layout_area(gview,1,5,1,1,[20,97,75,100])
+
+#   page6 = mvl_regular_layout_area(gview,1,5,1,1,[20,97,75,100])
+
+#   page7 = mvl_regular_layout_area(gview,1,5,1,1,[20,97,75,100])
+
+   # SuperPage description
+   dw = plot_superpage( pages : [page1, page2, page3, page4, page5, page6, page7] )
+
+   return dw
+
+end build_layout
+
+#------------------------------------------
+
+# Function to build the title
+function title_definition(cosmo,auxtitle,prog)
+   iref_time = grib_get_long(cosmo[1], 'dataTime') / 100 # HHMM
+   dref_date = date(grib_get_long(cosmo[1], 'dataDate'))
+   ival_time = grib_get_long(cosmo[1], 'validityTime') / 100 # HHMM
+   dval_date = date(grib_get_long(cosmo[1], 'validityDate'))
+   iprog     = left_pad_number(number(prog),2)
+
+   sref_time = left_pad_number(iref_time,2)
+   sval_time = left_pad_number(ival_time,2)
+   sref_date = string(dref_date,'ddmmmyyyy')
+   sval_date = string(dval_date,'ddmmmyyyy')
+   sref_weekday = string(dref_date,'ddd')
+   sval_weekday = string(dval_date,'ddd')
+
+   stitle1 = auxtitle
+   stitle2 = "Ref:" & sref_time & "Z" & sref_date & " (" & sref_weekday & ") +PROG" & iprog & "h/Val:"& sval_time & "Z" & sval_date & " (" & sval_weekday & ")"
+
+
+   title = mtext(
+      text_line_count : 2,
+      text_line_1     : stitle1,
+      text_line_2     : stitle2,
+      text_font_size  : 0.6
+     )
+
+   return title
+
+end title_definition
+
+include FUNCAO_mvl_study_areas
+include FUNCAO_left_pad_number
+include FUNCAO_mvl_geopolyline
