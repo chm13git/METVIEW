@@ -120,6 +120,24 @@ print ("Lista de Prognósticos: ", pl)
 loop prog in pl
 #for t = (pl+1) to (pl+1) do
 
+# Importing : /neris/data/cosmo_met5_00_20210119000
+atmmod = read('/home/operador/gaia/MODEL/' & modatm & '/cosmo_met5_' & RUN & '_' & DATE & prog)
+
+# Importing COSMO data of 1 prog older than current for prec calculations
+if prog = "000" then
+	atmmod_m1p = atmmod
+else
+	prog_m1p = number(prog)-3
+	prog_m1p = left_pad_number(prog_m1p,3)
+	atmmod_m1p = read('/home/operador/gaia/MODEL/COSMO/cosmo_met5_' & RUN & '_' & DATE & prog_m1p)
+end if
+
+# Converting 'u' and 'v' in m/s into wind speed in kt
+u10kt = atmmod[559]*1.944
+v10kt = atmmod[560]*1.944
+
+ws10kt = sqrt(u10kt^2 + v10kt^2)
+
 # Because analysis is t = 1 in the NC file
 prognc = number(prog)+1
 
@@ -170,23 +188,6 @@ hsvd_red = mcont(
     contour_shade_min_level_colour  : 'RGBA(1.0,0.1,0.0,1.0)'
     )
 
-# Importing : /neris/data/cosmo_met5_00_20210119000
-atmmod = read('/home/operador/gaia/MODEL/COSMO/cosmo_met5_' & RUN & '_' & DATE & prog)
-
-# Importing COSMO data of 1 prog older than current for prec calculations
-if prog = "000" then
-	atmmod_m1p = atmmod
-else
-	prog_m1p = number(prog)-3
-	prog_m1p = left_pad_number(prog_m1p,3)
-	atmmod_m1p = read('/home/operador/gaia/MODEL/COSMO/cosmo_met5_' & RUN & '_' & DATE & prog_m1p)
-end if
-
-# Converting 'u' and 'v' in m/s into wind speed in kt
-u10kt = atmmod[559]*1.944
-v10kt = atmmod[560]*1.944
-
-ws10kt = sqrt(u10kt^2 + v10kt^2)
 
 # WS title
 ws_title = mtext(
