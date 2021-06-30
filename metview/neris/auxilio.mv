@@ -37,19 +37,19 @@ end for
 print(pars)
 
 # Saving pars into vars
-north		= pars[1]
-south		= pars[2]
-east		= pars[3]
-west		= pars[4]
+NORTH		= pars[1]
+SOUTH		= pars[2]
+EAST		= pars[3]
+WEST		= pars[4]
 
 # Model choices
-modatm		= pars[5] # COSMO/WRF/ICON/GFS
-modgrid		= pars[6] # met/ant/sse22/wrf10km
-modwave		= pars[7] # ww3cosmo/ww3icon/ww3gfs
+MODATM		= pars[5]
+MODGRD		= pars[6] # met/ant/sse22/wrf10km
+MODWAV		= pars[7] # ww3_cosmo/ww3_icon/ww3_gfs
 
 # Aux Titles
-auxtitle	= pars[8]
-figname		= pars[9]
+AUXTITLE	= pars[8]
+FIGNAME		= pars[9]
 
 # Date & run
 DATE		= pars[10] # 20210629
@@ -60,16 +60,16 @@ IPROG		= pars[12] # Initial prog
 FPROG		= pars[13] # Final prog
 
 # Thresholds
-hslim		= pars[14] # height significant [meters]
-wslim		= pars[15] # wind speed [knots]
-hvlim		= pars[16] # horizontal visibility [MN]
-cblim		= pars[17] # cloud base [ft]
-pclim		= pars[18] # precipitation [mm/h]
-nvlim		= pars[19] # snow [mm/h]
+HSLIM		= pars[14] # height significant [meters]
+WSLIM		= pars[15] # wind speed [knots]
+HVLIM		= pars[16] # horizontal visibility [MN]
+CBLIM		= pars[17] # cloud base [ft]
+PCLIM		= pars[18] # precipitation [mm/h]
+SNLIM		= pars[19] # snow [mm/h]
 
 # Setting Plot Areas
-area = [south,west,north,east]	# [lats,lonw,latn,lone]
-area_icone = [-61,-82,16,-14]	# Fixed
+area = [SOUTH,WEST,NORTH,EAST]	# [lats,lonw,latn,lone]
+area_icone = [-61,-82,16,-14]	# Fixed!
 lat_area = [area[1], area[3], area[3], area[1], area[1]] # Draw a four sided polygon
 lon_area = [area[2], area[2], area[4], area[4], area[2]]
 
@@ -78,28 +78,28 @@ print ("Data     : " & DATE)
 RUN = left_pad_number(RUN,2); print ("Rodada   : " & RUN)
 
 # Selecting wave model file
-if modatm = "COSMO" and modgrid = "met" then
+if MODATM = "COSMO" and MODGRD = "met" then
 	ww3name = '/home/operador/gaia/MODEL/WW3_COSMO/ww3cosmo_met_' & DATE & RUN & '.nc'
 end if
-if modatm = "COSMO" and modgrid = "ant" then
+if MODATM = "COSMO" and MODGRD = "ant" then
 	ww3name = '/home/operador/gaia/MODEL/WW3_ICON/ww3icon_ant_' & DATE & RUN & '.nc'
 end if
-if modatm = "ICON" and modgrid = "met" then
+if MODATM = "ICON" and MODGRD = "met" then
 	ww3name = '/home/operador/gaia/MODEL/WW3_ICON/ww3icon_met_' & DATE & RUN & '.nc'
 end if
-if modatm = "ICON" and modgrid = "ant" then
+if MODATM = "ICON" and MODGRD = "ant" then
 	ww3name = '/home/operador/gaia/MODEL/WW3_ICON/ww3icon_ant_' & DATE & RUN & '.nc'
 end if
-if modatm = "WRF" and modgrid = "met" then
+if MODATM = "WRF" and MODGRD = "met" then
 	ww3name = '/home/operador/gaia/MODEL/WW3_GFS/ww3gfs_met_' & DATE & RUN & '.nc'
 end if
-if modatm = "WRF" and modgrid = "ant" then
+if MODATM = "WRF" and MODGRD = "ant" then
 	ww3name = '/home/operador/gaia/MODEL/WW3_GFS/ww3gfs_ant_' & DATE & RUN & '.nc'
 end if
-if modatm = "GFS" and modgrid = "met" then
+if MODATM = "GFS" and MODGRD = "met" then
 	ww3name = '/home/operador/gaia/MODEL/WW3_GFS/ww3gfs_met_' & DATE & RUN & '.nc'
 end if
-if modatm = "GFS" and modgrid = "ant" then
+if MODATM = "GFS" and MODGRD = "ant" then
 	ww3name = '/home/operador/gaia/MODEL/WW3_GFS/ww3gfs_ant_' & DATE & RUN & '.nc'
 end if
 
@@ -110,7 +110,7 @@ print('Wave Model: ' & ww3name)
 # Create a Prog List
 #pl = 54
 pl = nil
-for i = iprog to fprog do
+for i = IPROG to FPROG do
 	if mod(i,3) = 0 then
 		pl = pl & [left_pad_number(i,3)]
 	end if
@@ -121,7 +121,7 @@ loop prog in pl
 #for t = (pl+1) to (pl+1) do
 
 # Importing : /neris/data/cosmo_met5_00_20210119000
-atmmod = read('/home/operador/gaia/MODEL/' & modatm & '/cosmo_met5_' & RUN & '_' & DATE & prog)
+atmmod = read('/home/operador/gaia/MODEL/' & MODATM & '/cosmo_met5_' & RUN & '_' & DATE & prog)
 
 # Importing COSMO data of 1 prog older than current for prec calculations
 if prog = "000" then
@@ -157,7 +157,7 @@ hsmax = maxvalue(hs)
 # HS title
 hs_title = mtext(
 	text_line_count		: 1,
-	text_line_1		: 'Ondas > ' & hslim & ' m',
+	text_line_1		: 'Ondas > ' & HSLIM & ' m',
 	text_mode		: 'positional',
 	text_box_x_position	: 0.7,
 	text_box_y_position	: 3.3,
@@ -168,7 +168,7 @@ hs_title = mtext(
 hs_vd = mcont(
     contour                         : 'off',
     contour_level_selection_type    : 'level_list',
-    contour_level_list              : [hslim, hsmax],
+    contour_level_list              : [HSLIM, hsmax],
     contour_label                   : 'off',
     contour_shade                   : 'on',
     contour_shade_method            : 'area_fill',
@@ -181,7 +181,7 @@ hs_vd = mcont(
 hsvd_red = mcont(
     contour                         : 'off',
     contour_level_selection_type    : 'level_list',
-    contour_level_list              : [hslim, hsmax], # VRF como INC max da var!!!
+    contour_level_list              : [HSLIM, hsmax], # VRF como INC max da var!!!
     contour_label                   : 'off',
     contour_shade                   : 'on',
     contour_shade_method            : 'area_fill',
@@ -389,7 +389,7 @@ study_area_vd = mgraph(
     )
 
 # Title definition
-title = title_definition(ws10kt,auxtitle,prog) # Using title def from the 10m wind!
+title = title_definition(ws10kt,AUXTITLE,prog) # Using title def from the 10m wind!
 
 # Text Definitions not to plot the title
 notitle = mtext(
@@ -399,7 +399,7 @@ notitle = mtext(
 dw = build_layout(area, area_icone)
 
 # Device description
-out = png_output(output_name : "auxilio_mv_" & figname & RUN & "_" & prog)
+out = png_output(output_name : "auxilio_mv_" & FIGNAME & RUN & "_" & prog)
 setoutput(out)
 
 # Plotting
@@ -418,7 +418,7 @@ plot(dw[7], notitle, pc_title, pc, pc_vd, maskout_f, m5cont, m5cont_vd)
 #plot(dw[2], title, hs, hsvd_red, ws10kt, wsvd_red, hv, hvvd_red, cb, cbvd_red, m5cont, m5cont_vd, maskout)
 plot(dw[2], title, hs, hsvd_red, ws10kt, wsvd_red, hv, hvvd_red, cb, cbvd_red, pc, pcvd_red, m5cont, m5cont_vd, maskout)
 
-print("Figure " & figname & prog & ".png done!")
+print("Figure " & FIGNAME & prog & ".png done!")
 
 end loop
 
@@ -564,7 +564,7 @@ end build_layout
 #------------------------------------------
 
 # Function to build the title
-function title_definition(cosmo,auxtitle,prog)
+function title_definition(cosmo,AUXTITLE,prog)
    iref_time = grib_get_long(cosmo[1], 'dataTime') / 100 # HHMM
    dref_date = date(grib_get_long(cosmo[1], 'dataDate'))
    ival_time = grib_get_long(cosmo[1], 'validityTime') / 100 # HHMM
@@ -578,7 +578,7 @@ function title_definition(cosmo,auxtitle,prog)
    sref_weekday = string(dref_date,'ddd')
    sval_weekday = string(dval_date,'ddd')
 
-   stitle1 = auxtitle
+   stitle1 = AUXTITLE
    stitle2 = "Ref:" & sref_time & "Z" & sref_date & " (" & sref_weekday & ") +PROG" & iprog & "h/Val:"& sval_time & "Z" & sval_date & " (" & sval_weekday & ")"
 
 
