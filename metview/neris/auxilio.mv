@@ -53,7 +53,7 @@ FIGNAME		= pars[9]
 
 # Date & run
 DATE		= pars[10] # 20210629
-RUN		= pars[11] # 00/12
+RUN		= left_pad_number(pars[11],2) # 00/12
 
 # Setting Progs (given in hours from the analysis from 0 to 96, or 120)
 IPROG		= pars[12] # Initial prog
@@ -73,42 +73,11 @@ area_icone = [-61,-82,16,-14]	# Fixed!
 lat_area = [area[1], area[3], area[3], area[1], area[1]] # Draw a four sided polygon
 lon_area = [area[2], area[2], area[4], area[4], area[2]]
 
-# Setting Date/Run from input args
+# Print relevant input args
 print ("Data     : " & DATE)
-RUN = left_pad_number(RUN,2); print ("Rodada   : " & RUN)
-
-# Selecting wave model file
-if MODATM = "COSMO" and MODGRD = "met" then
-	ww3name = '/home/operador/gaia/MODEL/WW3_COSMO/ww3cosmo_met_' & DATE & RUN & '.nc'
-end if
-if MODATM = "COSMO" and MODGRD = "ant" then
-	ww3name = '/home/operador/gaia/MODEL/WW3_ICON/ww3icon_ant_' & DATE & RUN & '.nc'
-end if
-if MODATM = "ICON" and MODGRD = "met" then
-	ww3name = '/home/operador/gaia/MODEL/WW3_ICON/ww3icon_met_' & DATE & RUN & '.nc'
-end if
-if MODATM = "ICON" and MODGRD = "ant" then
-	ww3name = '/home/operador/gaia/MODEL/WW3_ICON/ww3icon_ant_' & DATE & RUN & '.nc'
-end if
-if MODATM = "WRF" and MODGRD = "met" then
-	ww3name = '/home/operador/gaia/MODEL/WW3_GFS/ww3gfs_met_' & DATE & RUN & '.nc'
-end if
-if MODATM = "WRF" and MODGRD = "ant" then
-	ww3name = '/home/operador/gaia/MODEL/WW3_GFS/ww3gfs_ant_' & DATE & RUN & '.nc'
-end if
-if MODATM = "GFS" and MODGRD = "met" then
-	ww3name = '/home/operador/gaia/MODEL/WW3_GFS/ww3gfs_met_' & DATE & RUN & '.nc'
-end if
-if MODATM = "GFS" and MODGRD = "ant" then
-	ww3name = '/home/operador/gaia/MODEL/WW3_GFS/ww3gfs_ant_' & DATE & RUN & '.nc'
-end if
-
-wavemod = read(ww3name)
-
-print('Wave Model: ' & ww3name)
+print ("Rodada   : " & RUN)
 
 # Create a Prog List
-#pl = 54
 pl = nil
 for i = IPROG to FPROG do
 	if mod(i,3) = 0 then
@@ -117,11 +86,48 @@ for i = IPROG to FPROG do
 end for
 print ("Lista de Prognósticos: ", pl)
 
-loop prog in pl
-#for t = (pl+1) to (pl+1) do
 
-# Importing : /neris/data/cosmo_met5_00_20210119000
-atmmod = read('/home/operador/gaia/MODEL/' & MODATM & '/cosmo_met5_' & RUN & '_' & DATE & prog)
+# Looping over progs
+loop prog in pl
+
+# Importing: WAVE Model vars
+
+hs = gaia(
+        model      : MODWAV,
+        level_type : "surface",
+        parameter  : "hs",
+        date       : DATE,
+        time       : RUN,
+        step       : number(prog)+1
+        )
+
+# Importing: ATM Model vars
+
+# Wind
+u10m = gaia(
+	model      : MODATM,
+	level_type : "surface",
+	parameter  : "u_10m",
+	date       : DATE,
+	time       : RUN,
+	step       : 003
+	)
+v10m = gaia(
+	model      : MODATM,
+	level_type : "surface",
+	parameter  : "v_10m",
+	date       : DATE,
+	time       : RUN,
+	step       : 003
+	)
+umax = maxvalue(u10m); print(umax)
+vmax = maxvalue(v10m); print(vmax)
+stop
+# converting 'u' and 'v' in m/s into wind speed in kt
+u10kt = u10m*1.944
+v10kt = v10m*1.944
+
+ws10kt = sqrt(u10kt^2 + v10kt^2)
 
 # Importing COSMO data of 1 prog older than current for prec calculations
 if prog = "000" then
@@ -132,27 +138,19 @@ else
 	atmmod_m1p = read('/home/operador/gaia/MODEL/COSMO/cosmo_met5_' & RUN & '_' & DATE & prog_m1p)
 end if
 
-# Converting 'u' and 'v' in m/s into wind speed in kt
-u10kt = atmmod[559]*1.944
-v10kt = atmmod[560]*1.944
-
-ws10kt = sqrt(u10kt^2 + v10kt^2)
-
 # Because analysis is t = 1 in the NC file
 prognc = number(prog)+1
 
 # define netcdf plotting
-hs = netcdf_visualiser(
-netcdf_plot_type                : 'geo_matrix',
-netcdf_latitude_variable        : 'latitude',
-netcdf_longitude_variable       : 'longitude',
-netcdf_value_variable           : 'hs',
-netcdf_dimension_setting_method : 'index',
-netcdf_dimension_setting        : 'time:' & prognc,
-netcdf_data                     : wavemod
-)
-
-hsmax = maxvalue(hs)
+#hs = netcdf_visualiser(
+#netcdf_plot_type                : 'geo_matrix',
+#netcdf_latitude_variable        : 'latitude',
+#netcdf_longitude_variable       : 'longitude',
+#netcdf_value_variable           : 'hs',
+#netcdf_dimension_setting_method : 'index',
+#netcdf_dimension_setting        : 'time:' & prognc,
+#netcdf_data                     : wavemod
+#)
 
 # HS title
 hs_title = mtext(
