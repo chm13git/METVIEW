@@ -73,6 +73,18 @@ area_icone = [-61,-82,16,-14]	# Fixed!
 lat_area = [area[1], area[3], area[3], area[1], area[1]] # Draw a four sided polygon
 lon_area = [area[2], area[2], area[4], area[4], area[2]]
 
+# Selecting wave model file
+if MODWAV = "ww3cosmo" then
+	ww3nc = '/home/operador/gaia/MODEL/WW3_COSMO/ww3cosmo_' & RUN & '_' & DATE & RUN & '.nc'
+else if MODWAV = "ww3icon" then
+	ww3nc = '/home/operador/gaia/MODEL/WW3_ICON/ww3icon_' & RUN & '_' & DATE & RUN & '.nc'
+else if MODWAV = "ww3gfs" then
+	ww3nc = '/home/operador/gaia/MODEL/WW3_ICON/ww3gfs_' & RUN & '_' & DATE & RUN & '.nc'
+else
+	print("Specified Wave Model '"& MODWAV &"' does not exist!")
+	fail('Hint: Double check the name provided in the namelist and/or the GAIA dir.')
+end if
+
 # Print relevant input args
 print ("Data     : " & DATE)
 print ("Rodada   : " & RUN)
@@ -101,16 +113,18 @@ hs = gaia(
         step       : number(prog)+1
         )
 
+print(hs)
+stop
 # Importing: ATM Model vars
 
 # Wind
 u10m = gaia(
 	model      : MODATM,
 	level_type : "surface",
-	parameter  : "u_10m",
+	parameter  : "eastward_win",
 	date       : DATE,
 	time       : RUN,
-	step       : 003
+	step       : 000
 	)
 v10m = gaia(
 	model      : MODATM,
@@ -118,7 +132,7 @@ v10m = gaia(
 	parameter  : "v_10m",
 	date       : DATE,
 	time       : RUN,
-	step       : 003
+	step       : 000
 	)
 umax = maxvalue(u10m); print(umax)
 vmax = maxvalue(v10m); print(vmax)

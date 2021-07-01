@@ -86,7 +86,6 @@ netcdf_dimension_setting        : 'time:' & prognc,
 netcdf_data                     : ww3cosmo
 )
 
-
 # HS title
 hs_title = mtext(
 	text_line_count		: 1,
