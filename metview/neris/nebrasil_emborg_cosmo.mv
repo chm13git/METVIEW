@@ -54,7 +54,7 @@ RUN	= left_pad_number(args[2],2); print ("Rodada  : " & RUN)
 
 # Setting Progs (given in hours from the analysis from 0 to 96, or 120)
 iprog = 00	# initial prog
-fprog = 96	# final prog
+fprog = 00	# final prog
 
 # Prog List
 #pl = 54
@@ -243,6 +243,7 @@ cbvd_red = mcont(
 maskout = mcoast(
     map_coastline_land_shade	    : 'on',
     map_coastline_land_shade_colour : 'grey',
+    map_coastline_resolution	    : 'medium',
     map_boundaries                  : 'on',
     map_boundaries_colour           : 'black',
     map_administrative_boundaries   : 'on',
@@ -250,7 +251,9 @@ maskout = mcoast(
     map_administrative_boundaries_countries_list : 'bra',
     map_grid_line_style             : 'dash',
     map_grid_colour                 : 'RGBA(0.5,0.5,0.5,0.3)',
+    map_label_longitude_frequency   : 2,
     map_grid_longitude_increment    : 1,
+    map_label_latitude_frequency    : 2,
     map_grid_latitude_increment     : 1,
     map_label_height                : 0.4,
     map_label_right                 : 'off',
@@ -260,6 +263,7 @@ maskout = mcoast(
 maskout_f = mcoast(
     map_coastline_land_shade        : 'on',
     map_coastline_land_shade_colour : 'grey',
+    map_coastline_resolution	    : 'medium',
     map_boundaries                  : 'on',
     map_boundaries_colour           : 'black',
     map_administrative_boundaries   : 'on',
@@ -267,7 +271,8 @@ maskout_f = mcoast(
     map_administrative_boundaries_countries_list : 'bra',
     map_grid_line_style             : 'dash',
     map_grid_colour                 : 'RGBA(0.5,0.5,0.5,0.3)',
-    map_grid_longitude_increment    : 2,
+    map_label_longitude_frequency   : 1,
+    map_grid_longitude_increment    : 3,
     map_grid_latitude_increment     : 2,
     map_label_height                : 0.3,
     map_label_left                  : 'off',
@@ -317,7 +322,9 @@ leg_text = mtext(
 dw = build_layout(area, area_icone)
 
 # Device description
-out = png_output(output_name : workdir & "/auxilio_mv_" & figname & RUN & "_" & prog)
+out = png_output(
+	output_name			: workdir & "/teste1_auxilio_mv_" & figname & RUN & "_" & prog,
+	output_name_first_page_number	: 'off')
 setoutput(out)
 
 # Plotting
@@ -344,6 +351,7 @@ function build_layout(area, area_icone)
    coast_sea = mcoast(
     map_coastline_sea_shade        : 'on',
     map_coastline_sea_shade_colour : 'white',
+    map_coastline_resolution	    : 'medium',
     map_grid                       : 'off',
     map_label                      : 'off'
    )
