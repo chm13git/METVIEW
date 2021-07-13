@@ -54,7 +54,7 @@ RUN	= left_pad_number(args[2],2); print ("Rodada  : " & RUN)
 
 # Setting Progs (given in hours from the analysis from 0 to 96, or 120)
 iprog = 00	# initial prog
-fprog = 00	# final prog
+fprog = 72	# final prog
 
 # Prog List
 #pl = 54
