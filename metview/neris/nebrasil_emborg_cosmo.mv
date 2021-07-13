@@ -243,7 +243,7 @@ cbvd_red = mcont(
 maskout = mcoast(
     map_coastline_land_shade	    : 'on',
     map_coastline_land_shade_colour : 'grey',
-    map_coastline_resolution	    : 'medium',
+    map_coastline_resolution	    : 'high',
     map_boundaries                  : 'on',
     map_boundaries_colour           : 'black',
     map_administrative_boundaries   : 'on',
@@ -351,7 +351,7 @@ function build_layout(area, area_icone)
    coast_sea = mcoast(
     map_coastline_sea_shade        : 'on',
     map_coastline_sea_shade_colour : 'white',
-    map_coastline_resolution	    : 'medium',
+    map_coastline_resolution	    : 'high',
     map_grid                       : 'off',
     map_label                      : 'off'
    )
