@@ -22,7 +22,7 @@ workdir = "/home/operador/metview/neris/work"
 args = arguments()
 
 # Aux Title
-auxtitle = "CHM - Modelo COSMO - WW3 - VSA Dinâmica/2021 - Embarcações Orgânicas"
+auxtitle = "CHM - Modelo COSMO - WW3 - VI/PAD-MAR - Embarcações Orgânicas"
 figname = "nebrasil_emborg_"
 
 # Plot Areas
