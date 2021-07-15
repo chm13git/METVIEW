@@ -15,11 +15,14 @@
 
 # STATIC PARAMETERS
 
+# Setting work dir
+workdir = "/home/operador/metview/neris/work"
+
 # Loading arguments
 args = arguments()
 
 # Aux Title
-auxtitle = "CHM - Modelo COSMO - WW3 - VSA Dinâmica/2021 - Operações ANV"
+auxtitle = "CHM - Modelo COSMO - WW3 - VI/PAD-MAR - Operações com ANV"
 figname = "nebrasil_opeanv_"
 
 # Plot Areas
@@ -51,7 +54,7 @@ RUN	= left_pad_number(args[2],2); print ("Rodada  : " & RUN)
 
 # Setting Progs (given in hours from the analysis from 0 to 96, or 120)
 iprog = 00	# initial prog
-fprog = 96	# final prog
+fprog = 72	# final prog
 
 # Prog List
 #pl = 54
@@ -64,7 +67,7 @@ end for
 print ("Lista de Prognósticos: ", pl)
 
 # Importing WW3 data
-ww3cosmo = read('/home/operador/gaia/MODEL/WW3_COSMO/ww3cosmo_met_' & DATE & RUN& '.nc')
+ww3cosmo = read('/home/operador/gaia/MODEL/WW3_COSMO/ww3cosmo_met_' & DATE & RUN & '.nc')
 
 loop prog in pl
 #for t = (pl+1) to (pl+1) do
@@ -286,25 +289,27 @@ pcvd_red = mcont(
 # Coastlines to hide all data over the land
 # and draw state boundaries.
 maskout = mcoast(
-    map_coastline_land_shade	    : 'on',
-    map_coastline_land_shade_colour : 'grey',
-    map_boundaries                  : 'on',
-    map_boundaries_colour           : 'black',
-    map_administrative_boundaries   : 'on',
-    map_administrative_boundaries_style : 'solid',
+    map_coastline_land_shade		: 'on',
+    map_coastline_land_shade_colour	: 'grey',
+    #map_coastline_resolution		: 'medium',
+    map_boundaries			: 'on',
+    map_boundaries_colour		: 'black',
+    map_administrative_boundaries	: 'on',
+    map_administrative_boundaries_style	: 'solid',
     map_administrative_boundaries_countries_list : 'bra',
-    map_grid_line_style             : 'dash',
-    map_grid_colour                 : 'RGBA(0.5,0.5,0.5,0.3)',
-    map_grid_longitude_increment    : 1,
-    map_grid_latitude_increment     : 1,
-    map_label_height                : 0.4,
-    map_label_right                 : 'off',
-    map_label_top                   : 'off'
+    map_grid_line_style			: 'dash',
+    map_grid_colour			: 'RGBA(0.5,0.5,0.5,0.3)',
+    map_grid_longitude_increment	: 1,
+    map_grid_latitude_increment		: 1,
+    map_label_height			: 0.4,
+    map_label_right			: 'off',
+    map_label_top			: 'off'
    )
 
 maskout_f = mcoast(
     map_coastline_land_shade        : 'on',
     map_coastline_land_shade_colour : 'grey',
+    map_coastline_resolution	    : 'medium',
     map_boundaries                  : 'on',
     map_boundaries_colour           : 'black',
     map_administrative_boundaries   : 'on',
